@@ -1577,7 +1577,7 @@ class RawPcapNgReader(RawPcapReader):
                 0x80000001: self._read_block_pib,
         }
         self.endian = "!"  # Will be overwritten by first SHB
-        self.process_information = []
+        self.process_information = []  # type: List[Dict[str, Any]]
 
         if magic != b"\x0a\x0d\x0d\x0a":  # PcapNg:
             raise Scapy_Exception(
@@ -1805,8 +1805,6 @@ class RawPcapNgReader(RawPcapReader):
         self._check_interface_id(intid)
         ifname = self.interfaces[intid][2].get('name', None)
 
-        self.process_information = []
-
         return (block[20:20 + caplen][:size],
                 RawPcapNgReader.PacketMetadata(linktype=self.interfaces[intid][0],  # noqa: E501
                                                tsresol=self.interfaces[intid][2]['tsresol'],  # noqa: E501
@@ -1833,8 +1831,6 @@ class RawPcapNgReader(RawPcapReader):
             warning("PcapNg: SPB is too small %d/4 !" % len(block))
             raise EOFError
 
-        self.process_information = []
-
         caplen = min(wirelen, self.interfaces[intid][1])
         return (block[4:4 + caplen][:size],
                 RawPcapNgReader.PacketMetadata(linktype=self.interfaces[intid][0],  # noqa: E501
@@ -1858,8 +1854,6 @@ class RawPcapNgReader(RawPcapReader):
         except struct.error:
             warning("PcapNg: PKT is too small %d/20 !" % len(block))
             raise EOFError
-
-        self.process_information = []
 
         self._check_interface_id(intid)
         return (block[20:20 + caplen][:size],
@@ -1929,7 +1923,6 @@ class RawPcapNgReader(RawPcapReader):
         # type: (bytes, int) -> None
         """Apple Process Information Block"""
 
-        process_information = []
         # Get the Process ID
         try:
             dpeb_pid = struct.unpack(self.endian + "I", block[:4])[0]

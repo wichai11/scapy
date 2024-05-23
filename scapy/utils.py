@@ -1939,7 +1939,11 @@ class RawPcapNgReader(RawPcapReader):
             if code == 2:
                 process_information["name"] = value.decode("ascii", "backslashreplace")
             elif code == 4:
-                process_information["uuid"] = str(UUID(bytes=value))
+                if len(value) == 16:
+                    process_information["uuid"] = str(UUID(bytes=value))
+                else:
+                    warning("PcapNg: DPEB UUID length is invalid (%d)!",
+                            len(value))
 
         # Store process information
         self.process_information.append(process_information)
